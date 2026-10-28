@@ -15,6 +15,13 @@ type Dependency interface {
 	Ping(ctx context.Context) error
 }
 
+// Readiness is the application contract exposed to readiness adapters.
+type Readiness interface {
+	Ready(context.Context) error
+}
+
+var _ Readiness = (*Service)(nil)
+
 // ErrDraining reports that shutdown has stopped readiness.
 var ErrDraining = errors.New("service is draining")
 

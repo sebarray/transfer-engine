@@ -36,6 +36,15 @@ README.md
 
 ## Dependency rule
 - `presentation` calls business use case interfaces and does not import a DB client.
+  HTTP adapters receive `transfers.Operations`, `transfers.ReadQueries` and
+  `health.Readiness`; authentication uses `identity.Authenticator`. These contracts
+  live in business. `cmd/api` constructs the concrete implementations and injects
+  them; constructors may return concrete types without coupling handlers to them.
+  `financial.go` registers routes and middleware only. Account, transfer and
+  test-funding handlers receive narrower business contracts and adapt requests
+  independently. Authentication and request deadlines are separate middleware;
+  explicit presentation DTOs preserve the public JSON contract. Business JSON
+  representations used by persistence and idempotency remain unchanged.
 - `business` only depends on Go standard library and domain-level packages.
 - `infrastructure` implements business ports. Transaction-scoped repos share one `pgx.Tx` passed as implementation detail, not exposed to business.
 - `main` constructs config/logger/tracer, pools/clients, implementations, services, handlers; sets timeouts and shutdown ordering.

@@ -13,7 +13,7 @@ import (
 
 // New constructs the HTTP adapter. Configure routes before serving requests.
 // Health probes are public; RegisterFinancial adds authenticated routes when enabled.
-func New(service *health.Service, logger *slog.Logger, bodyLimit int64) *echo.Echo {
+func New(service health.Readiness, logger *slog.Logger, bodyLimit int64) *echo.Echo {
 	e := echo.NewWithConfig(echo.Config{
 		Logger:           logger,
 		HTTPErrorHandler: handleError,

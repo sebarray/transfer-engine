@@ -198,5 +198,38 @@ is made. All seven implementation phases are complete within the simulated scope
 Browser rendering has not been manually verified. The complete contract remains
 visible regardless of enabled routes; README explains activation and 404 behavior.
 
+## Follow-up — Interface-based HTTP injection
+
+- [x] Inject business use case interfaces into HTTP adapters, including readiness.
+  Implemented contracts: `transfers.Operations`, `transfers.ReadQueries`, and
+  `health.Readiness`; `identity.Authenticator` already existed. Acceptance:
+  direct fake use cases exercise HTTP context/actor/argument propagation, responses
+  and error mapping; `go test ./... -count=1` and the authenticated financial HTTP
+  PostgreSQL integration test pass.
+
+  Verification on 2026-10-27: `go test ./... -count=1 -timeout=90s` passed
+  outside the sandbox, including the direct use case injection test. Sandboxed
+  runs failed in local socket tests due to access restrictions. The authenticated
+  HTTP integration test could not create a Docker provider; `docker info` confirmed
+  the Docker Desktop Linux engine pipe was unavailable. TODO: start Docker and run
+  `go test -tags=integration ./tests/integration/... -run '^TestAuthenticatedFinancialHTTP$' -count=1 -timeout=5m`.
+  Resolved on 2026-10-28: the authenticated HTTP integration acceptance passed
+  outside the sandbox with Docker available.
+
+## Follow-up — Separate financial HTTP responsibilities
+
+- [x] Separate route registration, authentication, request deadlines, account/
+  transfer/test-funding handlers, strict request parsing and explicit response DTOs.
+  Handlers consume narrow business interfaces; transfer and funding no longer
+  share a boolean-driven handler. Preserve the public wire contract and both
+  production funding guards.
+- [x] Verify fake use case injection, actor/command propagation, transfer/funding
+  replay status, funding source-field rejection, authentication rejection and
+  request context cleanup. Full `go test ./... -count=1 -timeout=90s` passed
+  outside the sandbox on 2026-10-28.
+- [x] Verify authenticated PostgreSQL HTTP integration after the refactor.
+  Acceptance: `go test -tags=integration ./tests/integration/... -run '^TestAuthenticatedFinancialHTTP$' -count=1 -timeout=5m` passes.
+  Passed outside the sandbox on 2026-10-28 with Docker available.
+
 ## Deliberate non-goals from user's selection
 No mandated fuzzing, microbenchmarks, contract testing suite, rate limiting, bulkheads, full Grafana dashboards/alerts/SLOs, security scanners, load testing, Kubernetes, multi-service CQRS. Input validation, race detector and health checks are essential small additions. Reliable outbox, at-least-once consumer and workers are required to meet selected event-driven behavior and explicit DLQ requirements.
